@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<!-- [STUDIO:"code_batch_jobFlow"]<flow name="code_batch_jobFlow" doc:id="636b5296-3a3c-4dfc-84b2-a6e21172edca" >
+		<scheduler doc:name="Scheduler" doc:id="5cfc7211-6680-4ba5-b3eb-c63f2466d895" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES" />
+			</scheduling-strategy>
+		</scheduler>
+		<db:select doc:name="Select flights" doc:id="2c91bec6-2edd-4d40-8344-a1b3dd5f52e4" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT * FROM american&#93;&#93;></db:sql>
+		</db:select>
+		<batch:job jobName="Batch_Job" doc:id="71e81a2f-7242-4b5d-9aaf-84e306416c63" blockSize="5" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="2cf6fd80-559a-43d8-b3a8-f5e4b523a161" acceptExpression='#[ payload.toAirport== "SFO" &#93;' >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="83e203ae-bbfc-4045-86cc-c6e37d56e94f" size="2" >
+						<ee:transform doc:name="Transform Message grouped" doc:id="be18384f-244e-42c1-8d39-bb7a0e49d07b" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output text/csv header=true
+&#45;&#45;-
+payload map (flight) -> {
+  flightCode: upper(flight.code1 ++ flight.code2),
+  origin: flight.fromAirport,
+  destination: flight.toAirport,
+  price: flight.price as String
+}&#93;&#93;></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="newID" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload.ID&#93;&#93;></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<file:write doc:name="Write flights" doc:id="4ceee775-e7df-4252-a1f7-94e0c20123b0" config-ref="File_Config" path='#["D:\\Documentos\\documentos-ingeniero-binario-2025\\CLASE-8\\Ejemplos\\new\\flights_"++ uuid() ++".txt"&#93;' />
+						<logger level="INFO" doc:name="2 SFO flights processed" doc:id="1da3971d-291f-444c-adf9-7979975ffa17" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;	message: "10 SFO flights processed",&#10;	content: {&#10;		payload: payload,&#10;	}	&#10;}&#93;' />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="On complete log" doc:id="6b6edc73-5b35-48d4-aa0a-d9d82e9bb5f1" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;	message: "On complete log",&#10;	content: {&#10;		payload: payload,&#10;		vars: vars,&#10;		attributes: attributes&#10;	}	&#10;}&#93;' />
+			</batch:on-complete>
+		</batch:job>
+	</flow> [STUDIO] -->
+</mule>

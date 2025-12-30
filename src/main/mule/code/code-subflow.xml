@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="subflow-get-weather" doc:id="914cad1d-fe99-4790-8f5c-23eed78be7a2" >
+		<http:request method="GET" doc:name="Request weather API" doc:id="b4d67c38-91f4-4e00-9d66-22caabc425b6" url="https://aviationweather.gov/api/data/metar">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"ids" : "K"++ vars.varInitialData.destination,
+	"format": "json"
+}]]]></http:query-params>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="subflow-soap-get-country-currency" doc:id="cdb9da03-acdf-4662-a37b-e03d593fef76" >
+		<choice doc:name="Choice destination currency" doc:id="d80e7239-cf60-4910-9231-4b388409dce7" >
+			<when expression='#[vars.varInitialData.destination=="SFO"]'>
+				<wsc:consume operation="CountryCurrency" doc:name="Country Currency Service" doc:id="9f2b2ba2-5d84-45ee-93d4-a8482746bbab" config-ref="Web_Service_Consumer_Config">
+			<wsc:message>
+				<wsc:body><![CDATA[#[output application/xml
+ns ns0 http://www.oorsprong.org/websamples.countryinfo
+---
+{
+	ns0#CountryCurrency: {
+		ns0#sCountryISOCode: "US"
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+			</when>
+			<when expression='#[vars.varInitialData.destination=="LAX"]'>
+				<wsc:consume operation="CountryCurrency" doc:name="Country Currency Service" doc:id="37435657-b614-4535-b140-c0ffae843d3b" config-ref="Web_Service_Consumer_Config">
+			<wsc:message>
+				<wsc:body><![CDATA[#[output application/xml
+ns ns0 http://www.oorsprong.org/websamples.countryinfo
+---
+{
+	ns0#CountryCurrency: {
+		ns0#sCountryISOCode: "ES"
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+			</when>
+			<otherwise >
+				<wsc:consume operation="CountryCurrency" doc:name="Country Currency Service2" doc:id="e6120d5d-16ce-44ad-9985-1e1c12c08ef4" config-ref="Web_Service_Consumer_Config">
+			<wsc:message>
+				<wsc:body><![CDATA[#[output application/xml
+ns ns0 http://www.oorsprong.org/websamples.countryinfo
+---
+{
+	ns0#CountryCurrency: {
+		ns0#sCountryISOCode: "US"
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="After Soap service response" doc:id="eed15554-8dab-4636-aed2-d9ae143931b3" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	message: "SOAP Service response - Country Currency",&#10;	content: {&#10;		&#10;		payload: payload,&#10;		vars: vars,&#10;		attributes: attributes&#10;	}	&#10;}]' />
+	</sub-flow>
+</mule>

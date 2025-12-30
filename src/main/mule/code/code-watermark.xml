@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<!-- [STUDIO:"code-watermarkFlow-automatic"]<flow name="code-watermarkFlow-automatic" doc:id="1f09023f-42f7-4f65-854d-eacf8fe58e8d" >
+		<db:listener table="american" doc:name="On Table Row" doc:id="f1a20faa-4361-4b02-b552-c33efa6f04b4" config-ref="Database_Config" watermarkColumn="ID" idColumn="ID" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="2" timeUnit="MINUTES" />
+			</scheduling-strategy>
+		</db:listener>
+		<ee:transform doc:name="java to json array" doc:id="ec0596eb-e99f-473e-877f-1b9671debb43">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+[payload&#93;&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		<foreach doc:name="For Each" doc:id="8085b080-692f-4956-9c67-a92f87d96780" collection="#[payload&#93;" >
+			<ee:transform doc:name="Transform Message" doc:id="d0ec6be3-5c07-43eb-92a5-c4bb8471a492" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output text/csv header=true
+&#45;&#45;-
+[
+  {
+    flightCode: upper(payload.code1 ++ payload.code2),
+    origin: payload.fromAirport,
+    destination: payload.toAirport,
+    departureTime: payload.takeOffDate as String {format: "yyyy-MM-dd'T'HH:mm:ss"},
+    arrivalTime: now(), 
+    price: payload.price as Number
+  }
+&#93;&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<file:write doc:name="Write flight" doc:id="7a0be774-1ff9-4618-ab3c-3664c4cc723d" config-ref="File_Config" path='#["D:\\Documentos\\documentos-ingeniero-binario-2025\\CLASE-8\\Ejemplos\\new\\flights_"++ uuid() ++".txt"&#93;' />
+		</foreach>
+	</flow> [STUDIO] -->
+	<!-- [STUDIO:"code-watermarkFlow-manual"]<flow name="code-watermarkFlow-manual" doc:id="e392959d-86fa-4779-9223-6aeac3f59f1a" >
+		<scheduler doc:name="Scheduler" doc:id="d2cb4bd9-7e4d-41c1-a000-7e7f9db4b5a7" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="2" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<os:retrieve doc:name="Retrieve" doc:id="7830bdfa-8585-46cb-b078-757ea363e91a" key="lastId" objectStore="flightIndex">
+			<os:default-value ><![CDATA[0&#93;&#93;></os:default-value>
+		</os:retrieve>
+		<db:select doc:name="Select" doc:id="da70dd44-526f-4412-9e2d-cadb3ec631e5" config-ref="Database_Config" target="queryResults">
+			<db:sql ><![CDATA[SELECT * FROM american where ID > :lastID and toAirport = :destination&#93;&#93;></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	lastID: payload,
+	destination: "SFO"
+}&#93;&#93;&#93;></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="0afc50e8-16a5-47fc-a09c-7da49af540d9" >
+			<when expression="#[not isEmpty(vars.queryResults)&#93;">
+				<ee:transform doc:name="Transform Message" doc:id="32994514-afbe-4906-b9b6-059ba7002545">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+vars.queryResults&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<foreach doc:name="For Each" doc:id="23db8b95-7521-4069-aa50-06806b982142" collection="payload" >
+					<ee:transform doc:name="Transform Message" doc:id="67b60198-8006-48e6-8bb1-57adcc320f60">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output text/csv header=true
+&#45;&#45;-
+[
+  {
+    flightCode: upper(payload.code1 ++ payload.code2),
+    origin: payload.fromAirport,
+    destination: payload.toAirport,
+    departureTime: payload.takeOffDate as String {format: "yyyy-MM-dd'T'HH:mm:ss"},
+    arrivalTime: "2025-07-21T18:00:00", 
+    price: payload.price as Number
+  }
+&#93;&#93;&#93;></ee:set-payload>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="newID"><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload.ID&#93;&#93;></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<file:write doc:name="Write flight" doc:id="a088f600-dc41-4bad-ab20-a3e7b0ba6b84" config-ref="File_Config" path='#["D:\\Documentos\\documentos-ingeniero-binario-2025\\CLASE-8\\Ejemplos\\new\\flights_"++ uuid() ++".txt"&#93;' />
+					<os:store doc:name="Update object store" doc:id="a0b87a60-b216-484b-a0dd-725c60619f4d" key="lastID" objectStore="flightIndex" >
+						<os:value ><![CDATA[#[vars.newID&#93;&#93;&#93;></os:value>
+					</os:store>
+				</foreach>
+			</when>
+		</choice>
+	</flow> [STUDIO] -->
+</mule>

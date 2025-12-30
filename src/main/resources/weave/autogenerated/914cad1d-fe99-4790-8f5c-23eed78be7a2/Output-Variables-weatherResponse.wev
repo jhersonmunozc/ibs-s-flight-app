@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_914cad1d_fe99_4790_8f5c_23eed78be7a2_Output_Variables_weatherResponse = Any
+
